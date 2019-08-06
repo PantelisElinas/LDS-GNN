@@ -386,13 +386,16 @@ def main(data, method, seed, missing_percentage, _corrupted_graph_file):
     for i, cnf in enumerate(configs):
         print("Training configuration: {}".format(i))
         print(cnf)
+        # Probably need to modify the below code to return train_acc as well as mnlp values for each dataset
         vrs, valid_acc, test_acc = lds(data_config, cnf)
         if best_valid_acc <= valid_acc:
             print('Found a better configuration:', valid_acc)
             best_valid_acc = valid_acc
             best_test_acc = test_acc
 
-        print('Test accuracy of the best found model:', best_test_acc)
+        print('Val and Test accuracies of the best found model: {} {}'.format(best_valid_acc, best_test_acc))
+
+    # Need some code here to write the results out to a csv file
 
 
 if __name__ == '__main__':
