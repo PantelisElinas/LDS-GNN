@@ -341,7 +341,7 @@ def lds(data_conf: ConfigData, config: LDSConfig):
     return vars(), svd['es final value'], test_acc
 
 
-def main(data, method, seed, missing_percentage):
+def main(data, method, seed, missing_percentage, _corrupted_graph_file):
 
     if data == 'iris':
         data_config = UCI(seed=seed, dataset_name=data, n_train=10, n_val=10, n_es=10, scale=False)
@@ -356,8 +356,13 @@ def main(data, method, seed, missing_percentage):
     elif data == '20news10':
         data_config = UCI(seed=seed, dataset_name=data, n_train=100, n_val=100, n_es=100, scale=False)
     elif data == 'cora' or data == 'citeseer':
-        data_config = EdgeDelConfigData(prob_del=missing_percentage, seed=seed, enforce_connected=False,
-                                        dataset_name=data)
+        if len(_corrupted_graph_file) > 0:
+            data_config = EdgeDelConfigData(prob_del=missing_percentage, seed=seed, enforce_connected=False,
+                                            dataset_name=data,
+                                            corrupted_graph_file=_corrupted_graph_file)
+        else:
+            data_config = EdgeDelConfigData(prob_del=missing_percentage, seed=seed, enforce_connected=False,
+                                            dataset_name=data)
     elif data == 'fma':
         data_config = UCI(seed=seed, dataset_name=data, n_train=160, n_val=160, n_es=160, scale=False)
     else:
@@ -403,8 +408,11 @@ if __name__ == '__main__':
                         help='The random seed. Default: 1')
     parser.add_argument('-e', default=50, type=int,
                         help='The percentage of missing edges (valid only for cora and citeseer dataset): Default 50')
+    parser.add_argument('-c', default='', type=str,
+                        help='The corrupted graph in .gpickle format.')
     args = parser.parse_args()
 
     _data, _method, _seed, _missing_percentage = args.d, args.m, args.s, args.e/100
+    _corrupted_graph_file = args.c
 
-    main(_data, _method, _seed, _missing_percentage)
+    main(_data, _method, _seed, _missing_percentage, _corrupted_graph_file)

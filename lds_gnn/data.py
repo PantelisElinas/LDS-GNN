@@ -163,6 +163,7 @@ except ImportError as e:
     from utils import Config, upper_triangular_mask
 
 from gcn_latent_net.datasets import DATASET_LOADERS, get_data
+from gcn_latent_net.utils.base import corrupt_adjacency
 
 
 class ConfigData(Config):
@@ -186,10 +187,14 @@ class ConfigData(Config):
 
 class EdgeDelConfigData(ConfigData):
     def __init__(self, **kwargs):
+        self.corrupted_graph_file = kwargs.get(
+            "corrupted_graph_file", None
+        )
         self.prob_del = 0.5
         self.enforce_connected = True
         super().__init__(**kwargs)
         self.kwargs_f1["prob_del"] = self.prob_del
+        self.kwargs_f1["corrupted_graph_file"] = self.corrupted_graph_file
         if not self.enforce_connected:
             self.kwargs_f1["enforce_connected"] = self.enforce_connected
         del self.prob_del
@@ -345,7 +350,12 @@ def graph_delete_connections(
 
 
 def load_data_del_edges(
-    prob_del=0.4, seed=0, to_dense=True, enforce_connected=True, dataset_name="cora"
+    prob_del=0.4,
+    seed=0,
+    to_dense=True,
+    enforce_connected=True,
+    dataset_name="cora",
+    corrupted_graph_file=None,
 ):
     # res = graph_delete_connections(prob_del, seed, *load_data(dataset_name), to_dense=to_dense,
     #                                enforce_connected=enforce_connected)
@@ -362,6 +372,15 @@ def load_data_del_edges(
         random_state=None,
         get_y_values=True,
     )
+
+    #
+    if corrupted_graph_file is not None:
+        A = corrupt_adjacency(
+            A=A,
+            adj_corruption_method="",  # Not used
+            perc_corruption=0,  # Not used
+            adjacency_matrix=corrupted_graph_file,
+        )
     # adj, features, y_train, *other_splittables
     # return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask
 
