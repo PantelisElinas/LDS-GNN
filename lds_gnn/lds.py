@@ -378,7 +378,8 @@ def main(data, method, seed, missing_percentage):
     best_valid_acc = 0
     best_test_acc = 0
     print(data_config)
-    for cnf in configs:
+    for i, cnf in enumerate(configs):
+        print("Training configuration: {}".format(i))
         print(cnf)
         vrs, valid_acc, test_acc = lds(data_config, cnf)
         if best_valid_acc <= valid_acc:
