@@ -153,7 +153,7 @@ import gcn.metrics
 from sklearn.neighbors import kneighbors_graph
 import pandas as pd
 
-from gcn_latent_net.metrics import evaluate_accuracy, evaluate_mnlp
+import tensorflow_probability as tfp
 
 try:
     from lds_gnn.data import ConfigData, UCI, EdgeDelConfigData
@@ -194,12 +194,13 @@ def empirical_mean_model(S, sample_vars, model_out, *what, fd=None, ss=None):
         mean_out.append(ss.run(model_out, fd))
     mean_out = np.mean(mean_out, axis=0)
     lst = ss.run(what, {**fd, model_out: mean_out})
+
     return lst[0] if len(lst) == 1 else lst
 
 
-def empirical_mnlp_model(S, sample_vars, model_out,
-                         y, mask_train, mask_val, mask_test,
-                         fd=None, ss=None):
+def empirical_mnlp_model(S, sample_vars, model_out, *what, fd=None, ss=None):
+    """ Computes the tensors in `what` using the empirical mean output of the model given by
+    `model_out`, sampling `S` times the stochastic variables in `sample_vars`"""
     if ss is None:
         ss = tf.get_default_session()
     smp = [sample(h) for h in far.utils.as_list(sample_vars)]
@@ -208,10 +209,9 @@ def empirical_mnlp_model(S, sample_vars, model_out,
         ss.run(smp)
         mean_out.append(ss.run(model_out, fd))
     mean_out = np.mean(mean_out, axis=0)
-    mnlp_train, mnlp_val, mnlp_test = evaluate_mnlp(
-        y, mean_out, mask_train, mask_val, mask_test
-    )
-    return mnlp_test
+    lst = ss.run(what, {**fd, model_out: mean_out})
+
+    return lst[0] if len(lst) == 1 else lst
 
 
 class ConfigMethod(Config):
@@ -338,6 +338,8 @@ def lds(data_conf: ConfigData, config: LDSConfig):
         plc.X, adj_hyp, plc.Y, num_layer=config.num_layer, dropout=plc.keep_prob
     )
 
+    out_softmax = tf.nn.softmax(out)
+
     error = tf.identity(
         gcn.metrics.masked_softmax_cross_entropy(out, plc.Y, plc.label_mask), "error"
     )
@@ -345,6 +347,14 @@ def lds(data_conf: ConfigData, config: LDSConfig):
 
     acc = tf.identity(
         gcn.metrics.masked_accuracy(out, plc.Y, plc.label_mask), "accuracy"
+    )
+
+    pred_distro = tfp.distributions.OneHotCategorical(probs=out_softmax)
+    mnlp_test = tf.math.negative(
+        tf.identity(
+            -tf.reduce_mean(tf.boolean_mask(pred_distro.log_prob(ys), test_mask)),
+            "mnlp",
+        )
     )
 
     tr_fd, val_fd, es_fd, test_fd = plc.fds(train_mask, val_mask, es_mask, test_mask)
@@ -357,20 +367,15 @@ def lds(data_conf: ConfigData, config: LDSConfig):
     def _test_on_accept(
         _t
     ):  # execute this when a better parameter configuration is found
-        accft = empirical_mean_model(config.n_sample,
-                                     adj_hyp,
-                                     out,
-                                     acc,
-                                     fd=test_fd)
+        accft = empirical_mean_model(config.n_sample, adj_hyp, out, acc, fd=test_fd)
 
-        mnlpft = empirical_mnlp_model(config.n_sample,
-                                      adj_hyp,
-                                      out,
-                                      plc.Y,
-                                      train_mask,
-                                      val_mask,
-                                      test_mask,
-                                      fd=test_fd,)
+        mnlpft = empirical_mean_model(
+            config.n_sample, adj_hyp, out_softmax, mnlp_test, fd=test_fd
+        )
+        # mnlpft = empirical_mnlp_model(
+        #     config.n_sample, adj_hyp, out_softmax, mnlp_test, fd=test_fd
+        # )
+
         update_append(svd, oa_t=_t, oa_act=accft)
         print("iteration", _t, " - mean test accuracy: ", accft)
         global test_acc
@@ -435,6 +440,9 @@ def lds(data_conf: ConfigData, config: LDSConfig):
                     ho_step(
                         steps(), tr_fd, val_fd, online=j
                     )  # do one hypergradient optimization step
+                # just for debugging exit
+
+            print("Finished training")
         except KeyboardInterrupt:
             print("Interrupted.", file=sys.stderr)
             return vars()
