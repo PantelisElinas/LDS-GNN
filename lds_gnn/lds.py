@@ -450,7 +450,7 @@ def lds(data_conf: ConfigData, config: LDSConfig):
 
 
 def main(
-    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, out_dir
+    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir
 ):
 
     if data == "iris":
@@ -477,7 +477,7 @@ def main(
         data_config = UCI(
             seed=seed, dataset_name=data, n_train=100, n_val=100, n_es=100, scale=False
         )
-    elif data == "cora" or data == "citeseer":
+    elif data in ["cora", "cora_edgelist", "citeseer", "citeseer_edgelist"]:
         if len(corrupted_graph_file) > 0:
             data_config = EdgeDelConfigData(
                 prob_del=missing_percentage,
@@ -487,6 +487,17 @@ def main(
                 enforce_connected=False,
                 dataset_name=data,
                 corrupted_graph_file=corrupted_graph_file,
+            )
+        elif edgelist is not None:
+            data_config = EdgeDelConfigData(
+                prob_del=missing_percentage,
+                seed=seed,
+                seed_np=seed_np,
+                random_split=random_split,
+                enforce_connected=False,
+                dataset_name=data,
+                corrupted_graph_file=None,
+                edgelist=edgelist,
             )
         else:
             data_config = EdgeDelConfigData(
@@ -607,6 +618,9 @@ if __name__ == "__main__":
         "-c", default="", type=str, help="The corrupted graph in .gpickle format."
     )
     parser.add_argument(
+        "-edgelist", default=None, type=str, help="The knn graph in .gpickle format."
+    )
+    parser.add_argument(
         "-odir",
         default=None,
         type=str,
@@ -624,6 +638,7 @@ if __name__ == "__main__":
     )
     _corrupted_graph_file = args.c
     _out_dir = args.odir
+    _edgelist = args.edgelist
 
     main(
         _data,
@@ -633,5 +648,6 @@ if __name__ == "__main__":
         _random_split,
         _missing_percentage,
         _corrupted_graph_file,
+        _edgelist,
         _out_dir,
     )
