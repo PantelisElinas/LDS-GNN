@@ -376,9 +376,9 @@ def load_data_del_edges(
     # adjacency matrix with the corrupted one store on disk.
 
     split_sizes = None
-    if dataset_name == "cora" or dataset_name =="cora_edgelist":
+    if dataset_name in ["cora", "cora_edgelist"]:
         split_sizes = [0.948, 0.805]
-    elif dataset_name == "citeseer" or dataset_name == "citesee_edgelist":
+    elif dataset_name in ["citeseer", "citeseer_edgelist"]:
         split_sizes = [0.964, 0.844]
 
     X, y, A, mask_train, mask_val, mask_test, y_train, y_val, y_test, n, d, k = get_data(
