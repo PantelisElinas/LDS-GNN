@@ -449,7 +449,9 @@ def lds(data_conf: ConfigData, config: LDSConfig):
     return vars(), svd["es final value"], test_acc, test_mnlp
 
 
-def main(data, method, seed, missing_percentage, corrupted_graph_file, out_dir):
+def main(
+    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, out_dir
+):
 
     if data == "iris":
         data_config = UCI(
@@ -480,6 +482,8 @@ def main(data, method, seed, missing_percentage, corrupted_graph_file, out_dir):
             data_config = EdgeDelConfigData(
                 prob_del=missing_percentage,
                 seed=seed,
+                seed_np=seed_np,
+                random_split=random_split,
                 enforce_connected=False,
                 dataset_name=data,
                 corrupted_graph_file=corrupted_graph_file,
@@ -582,6 +586,18 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", default=1, type=int, help="The random seed. Default: 1")
     parser.add_argument(
+        "-snp",
+        default=None,
+        type=int,
+        help="The random seed for stratified data splitting. Default: None",
+    )
+    parser.add_argument(
+        "-randomsplit",
+        default=False,
+        type=bool,
+        help="Random split of data. Default: False",
+    )
+    parser.add_argument(
         "-e",
         default=50,
         type=int,
@@ -598,8 +614,24 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    _data, _method, _seed, _missing_percentage = args.d, args.m, args.s, args.e / 100
+    _data, _method, _seed, _seed_np, _random_split, _missing_percentage = (
+        args.d,
+        args.m,
+        args.s,
+        args.snp,
+        args.randomsplit,
+        args.e / 100,
+    )
     _corrupted_graph_file = args.c
     _out_dir = args.odir
 
-    main(_data, _method, _seed, _missing_percentage, _corrupted_graph_file, _out_dir)
+    main(
+        _data,
+        _method,
+        _seed,
+        _seed_np,
+        _random_split,
+        _missing_percentage,
+        _corrupted_graph_file,
+        _out_dir,
+    )

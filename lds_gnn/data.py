@@ -178,7 +178,11 @@ class ConfigData(Config):
 
     def load(self):
         res = eval(self.f1)(
-            seed=self.seed, dataset_name=self.dataset_name, **self.kwargs_f1
+            seed=self.seed,
+            random_state=self.random_state,
+            random_split=self.random_split,
+            dataset_name=self.dataset_name,
+            **self.kwargs_f1
         )
         if self.f2:
             res = eval(self.f2)(res, **self.kwargs_f2, seed=self.seed)
@@ -187,9 +191,10 @@ class ConfigData(Config):
 
 class EdgeDelConfigData(ConfigData):
     def __init__(self, **kwargs):
-        self.corrupted_graph_file = kwargs.get(
-            "corrupted_graph_file", None
-        )
+        self.corrupted_graph_file = kwargs.get("corrupted_graph_file", None)
+        self.seed_np = kwargs.get("seed_np", None)
+        self.random_state = np.random.RandomState(self.seed_np)
+        self.random_split = kwargs.get("random_split", False)
         self.prob_del = 0.5
         self.enforce_connected = True
         super().__init__(**kwargs)
@@ -356,6 +361,8 @@ def load_data_del_edges(
     enforce_connected=True,
     dataset_name="cora",
     corrupted_graph_file=None,
+    random_split=False,
+    random_state=None,
 ):
     # res = graph_delete_connections(prob_del, seed, *load_data(dataset_name), to_dense=to_dense,
     #                                enforce_connected=enforce_connected)
@@ -365,11 +372,17 @@ def load_data_del_edges(
     # For loading corrupted graph, we need the extra step of replacing the loaded
     # adjacency matrix with the corrupted one store on disk.
 
+    split_sizes = None
+    if dataset_name == "cora":
+        split_sizes = [0.948, 0.805]
+    elif dataset_name == "citeseer":
+        split_sizes = [0.964, 0.844]
+
     X, y, A, mask_train, mask_val, mask_test, y_train, y_val, y_test, n, d, k = get_data(
         dataset_name=dataset_name,
-        random_split=False,
-        split_sizes=None,
-        random_state=None,
+        random_split=random_split,
+        split_sizes=split_sizes,
+        random_state=random_state,
         get_y_values=True,
     )
 
