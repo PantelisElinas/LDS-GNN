@@ -182,6 +182,7 @@ class ConfigData(Config):
             random_state=self.random_state,
             random_split=self.random_split,
             dataset_name=self.dataset_name,
+            edgelist=self.edgelist,
             **self.kwargs_f1
         )
         if self.f2:
@@ -192,6 +193,7 @@ class ConfigData(Config):
 class EdgeDelConfigData(ConfigData):
     def __init__(self, **kwargs):
         self.corrupted_graph_file = kwargs.get("corrupted_graph_file", None)
+        self.edgelist = kwargs.get("edgelist", None)
         self.seed_np = kwargs.get("seed_np", None)
         self.random_state = np.random.RandomState(self.seed_np)
         self.random_split = kwargs.get("random_split", False)
@@ -363,6 +365,7 @@ def load_data_del_edges(
     corrupted_graph_file=None,
     random_split=False,
     random_state=None,
+    edgelist=None,
 ):
     # res = graph_delete_connections(prob_del, seed, *load_data(dataset_name), to_dense=to_dense,
     #                                enforce_connected=enforce_connected)
@@ -373,9 +376,9 @@ def load_data_del_edges(
     # adjacency matrix with the corrupted one store on disk.
 
     split_sizes = None
-    if dataset_name == "cora":
+    if dataset_name == "cora" or dataset_name =="cora_edgelist":
         split_sizes = [0.948, 0.805]
-    elif dataset_name == "citeseer":
+    elif dataset_name == "citeseer" or dataset_name == "citesee_edgelist":
         split_sizes = [0.964, 0.844]
 
     X, y, A, mask_train, mask_val, mask_test, y_train, y_val, y_test, n, d, k = get_data(
@@ -384,10 +387,12 @@ def load_data_del_edges(
         split_sizes=split_sizes,
         random_state=random_state,
         get_y_values=True,
+        edgelist=edgelist,
     )
 
     #
-    if corrupted_graph_file is not None:
+
+    if dataset_name in ["cora", "citeseer"] and corrupted_graph_file is not None:
         A = corrupt_adjacency(
             A=A,
             adj_corruption_method="",  # Not used
