@@ -192,6 +192,7 @@ class ConfigData(Config):
 
 class EdgeDelConfigData(ConfigData):
     def __init__(self, **kwargs):
+        self.split_train = kwargs.get("split_train", False)  # default is False
         self.corrupted_graph_file = kwargs.get("corrupted_graph_file", None)
         self.edgelist = kwargs.get("edgelist", None)
         self.seed_np = kwargs.get("seed_np", None)
@@ -204,6 +205,7 @@ class EdgeDelConfigData(ConfigData):
         self.kwargs_f1["corrupted_graph_file"] = self.corrupted_graph_file
         if not self.enforce_connected:
             self.kwargs_f1["enforce_connected"] = self.enforce_connected
+        self.kwargs_f2["split_train"] = self.split_train
         del self.prob_del
         del self.enforce_connected
 
@@ -414,17 +416,26 @@ def load_data_del_edges(
     return res
 
 
-def reorganize_data_for_es(loaded_data, seed=0, es_n_data_prop=0.5):
+def reorganize_data_for_es(loaded_data, seed=0, es_n_data_prop=0.5, split_train=False):
     adj, adj_mods, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = (
         loaded_data
     )
     ys = y_train + y_val + y_test
     features = preprocess_features(features)
-    msk1, msk2 = divide_mask(es_n_data_prop, np.sum(val_mask), seed=seed)
-    mask_val = np.array(val_mask)
-    mask_es = np.array(val_mask)
-    mask_val[mask_val] = msk2
-    mask_es[mask_es] = msk1
+    if split_train:
+        msk1, msk2 = divide_mask(es_n_data_prop, np.sum(train_mask), seed=seed)
+        mask_train = np.array(train_mask)
+        mask_es = np.array(train_mask)
+        train_mask[mask_train] = msk2  # this changes
+        mask_es[mask_es] = msk1
+
+        mask_val = val_mask  # this does not chance
+    else:  # split the validation set
+        msk1, msk2 = divide_mask(es_n_data_prop, np.sum(val_mask), seed=seed)
+        mask_val = np.array(val_mask)
+        mask_es = np.array(val_mask)
+        mask_val[mask_val] = msk2
+        mask_es[mask_es] = msk1
 
     return adj, adj_mods, features, ys, train_mask, mask_val, mask_es, test_mask
 

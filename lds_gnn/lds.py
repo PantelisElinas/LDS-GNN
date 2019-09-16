@@ -450,7 +450,7 @@ def lds(data_conf: ConfigData, config: LDSConfig):
 
 
 def main(
-    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir
+    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir, splittrain
 ):
 
     if data == "iris":
@@ -487,6 +487,7 @@ def main(
                 enforce_connected=False,
                 dataset_name=data,
                 corrupted_graph_file=corrupted_graph_file,
+                split_train=splittrain,
             )
         elif edgelist is not None:
             data_config = EdgeDelConfigData(
@@ -498,6 +499,7 @@ def main(
                 dataset_name=data,
                 corrupted_graph_file=None,
                 edgelist=edgelist,
+                split_train=splittrain
             )
         else:
             data_config = EdgeDelConfigData(
@@ -505,6 +507,7 @@ def main(
                 seed=seed,
                 enforce_connected=False,
                 dataset_name=data,
+                split_train=splittrain
             )
     elif data == "fma":
         data_config = UCI(
@@ -609,6 +612,12 @@ if __name__ == "__main__":
         help="Random split of data. Default: False",
     )
     parser.add_argument(
+        "-splittrain",
+        default=False,
+        type=bool,
+        help="If True, then the training set is split instead of the validation set.",
+    )
+    parser.add_argument(
         "-e",
         default=50,
         type=int,
@@ -639,6 +648,7 @@ if __name__ == "__main__":
     _corrupted_graph_file = args.c
     _out_dir = args.odir
     _edgelist = args.edgelist
+    _split_train = args.splittrain
 
     main(
         _data,
@@ -650,4 +660,5 @@ if __name__ == "__main__":
         _corrupted_graph_file,
         _edgelist,
         _out_dir,
+        _split_train,
     )
