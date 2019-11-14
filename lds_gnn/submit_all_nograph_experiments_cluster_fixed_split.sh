@@ -15,7 +15,8 @@
 # where 0-999 are the range of the indices of the jobs
 #
 module load tensorflow/1.12.0-py36-gpu
-module load cuda/9.0.176
+# module load cuda/9.0.176 # works for interactive setting
+module load cuda/10.0.130
 
 
 # example
