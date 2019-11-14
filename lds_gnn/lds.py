@@ -573,9 +573,9 @@ def main(
             {
                 "dataset": [data],
                 "corrupted_graph": [corrupted_graph_file],
-                "val_acc": [best_valid_acc],
-                "test_acc": [best_test_acc],
-                "test_mnlp": [best_test_mnlp],
+                "accuracy_val": [best_valid_acc],
+                "accuracy_test": [best_test_acc],
+                "mnlp_test": [best_test_mnlp],
             }
         )
         df.to_csv(results_filename)
