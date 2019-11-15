@@ -334,7 +334,7 @@ def gz_write(content, save_dir, name, results=True):
 def list_results(*keywords, save_dir, svd_map_file, verbose=True):
     _strip_fn = lambda nn: nn.split(os.sep)[1][:-3]
 
-    svd_map = gz_read(svd_map_file, results=False)
+    svd_map = gz_read(save_dir, svd_map_file, results=False)
     result_list = sorted(glob.glob('{}/*.gz'.format(save_dir)),
                          key=lambda x: os.path.getmtime(x))
     result_list = map(_strip_fn, result_list)
@@ -437,7 +437,7 @@ def early_stopping_with_save(patience, ss, svd, maxiters=1e10, var_list=None,
         svd['es final value'] = val
         svd['version'] = VERSION
         svd['running time'] = time.time() - starting_time
-        gz_write(svd, gz_name)
+        gz_write(svd, save_dir, gz_name)
 
         try:
             fl_dict = gz_read(save_dir, svd_map_file, results=False)
