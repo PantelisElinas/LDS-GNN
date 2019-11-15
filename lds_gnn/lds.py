@@ -303,7 +303,7 @@ class KNNLDSConfig(LDSConfig):
         super().__init__(method_name, **kwargs)
 
 
-def lds(data_conf: ConfigData, config: LDSConfig):
+def lds(data_conf: ConfigData, config: LDSConfig, out_dir=None):
     """
     Runs the LDS algorithm on data specified by `data_conf` with parameters
     specified in `config`.
@@ -390,7 +390,8 @@ def lds(data_conf: ConfigData, config: LDSConfig):
 
     # run the method
     tf.global_variables_initializer().run()
-    es_gen = early_stopping_with_save(config.pat, ss, svd, on_accept=_test_on_accept)
+    es_gen = early_stopping_with_save(config.pat, ss, svd, on_accept=_test_on_accept, on_refuse=None, on_close=None,
+                                      verbose=True, save_dir=_out_dir)
 
     if config.train:
         try:
@@ -452,6 +453,9 @@ def lds(data_conf: ConfigData, config: LDSConfig):
 def main(
     data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir, splittrain
 ):
+    if out_dir is not None:
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
 
     if data == "iris":
         data_config = UCI(
@@ -549,7 +553,7 @@ def main(
         print("Training configuration: {}".format(i))
         print(cnf)
         # Probably need to modify the below code to return train_acc as well as mnlp values for each dataset
-        vrs, valid_acc, test_acc, test_mnlp = lds(data_config, cnf)
+        vrs, valid_acc, test_acc, test_mnlp = lds(data_config, cnf, out_dir)
         if best_valid_acc <= valid_acc:
             print("Found a better configuration:", valid_acc)
             best_valid_acc = valid_acc
@@ -565,8 +569,6 @@ def main(
     # Need some code here to write the results out to a csv file
     # Check if out_dir exist and if not create it.
     if out_dir is not None:
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
         # the output filename
         results_filename = os.path.join(out_dir, "results.csv")
         df = pd.DataFrame(

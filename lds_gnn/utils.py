@@ -162,11 +162,11 @@ import tensorflow as tf
 
 
 VERSION = 1
-SAVE_DIR = 'results'
-if not os.path.exists(SAVE_DIR):
-    os.mkdir(SAVE_DIR)
-    print('FOLDER', SAVE_DIR, 'CREATED')
-SVD_MAP_FILE = '.svd_map'
+# SAVE_DIR = 'results'
+# if not os.path.exists(SAVE_DIR):
+#     os.mkdir(SAVE_DIR)
+#     print('FOLDER', SAVE_DIR, 'CREATED')
+# SVD_MAP_FILE = '.svd_map'
 
 
 class Config:
@@ -319,23 +319,23 @@ def update_append_v2(dct: dict, upd_dct: dict):
         dct[k].append(e)
 
 
-def gz_read(name, results=True):
-    name = '{}/{}.gz'.format(SAVE_DIR, name) if results else '{}.gz'.format(name)
+def gz_read(save_dir, name, results=True):
+    name = '{}/{}.gz'.format(save_dir, name) if results else '{}.gz'.format(name)
     with gzip.open(name, 'rb') as f:
         return pickle.load(f)
 
 
-def gz_write(content, name, results=True):
-    name = '{}/{}.gz'.format(SAVE_DIR, name) if results else '{}.gz'.format(name)
+def gz_write(content, save_dir, name, results=True):
+    name = '{}/{}.gz'.format(save_dir, name) if results else '{}.gz'.format(name)
     with gzip.open(name, 'wb') as f:
         pickle.dump(content, f)
 
 
-def list_results(*keywords, verbose=True):
+def list_results(*keywords, save_dir, svd_map_file, verbose=True):
     _strip_fn = lambda nn: nn.split(os.sep)[1][:-3]
 
-    svd_map = gz_read(SVD_MAP_FILE, results=False)
-    result_list = sorted(glob.glob('{}/*.gz'.format(SAVE_DIR)),
+    svd_map = gz_read(svd_map_file, results=False)
+    result_list = sorted(glob.glob('{}/*.gz'.format(save_dir)),
                          key=lambda x: os.path.getmtime(x))
     result_list = map(_strip_fn, result_list)
     try:
@@ -402,7 +402,17 @@ def early_stopping(patience, maxiters=1e10, on_accept=None, on_refuse=None, on_c
 
 
 def early_stopping_with_save(patience, ss, svd, maxiters=1e10, var_list=None,
-                             on_accept=None, on_refuse=None, on_close=None, verbose=True):
+                             on_accept=None, on_refuse=None, on_close=None, verbose=True,
+                             save_dir=None):
+    if save_dir is None:
+        save_dir = 'results'
+        svd_map_file = '.svd_map'
+    else:
+        svd_map_file = save_dir + "/.svd_map"
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+        print('FOLDER', save_dir, 'CREATED')
+
     starting_time = -1
     gz_name = str(time.time())
     svd['file name'] = gz_name
@@ -430,13 +440,13 @@ def early_stopping_with_save(patience, ss, svd, maxiters=1e10, var_list=None,
         gz_write(svd, gz_name)
 
         try:
-            fl_dict = gz_read(SVD_MAP_FILE, results=False)
+            fl_dict = gz_read(save_dir, svd_map_file, results=False)
         except FileNotFoundError:
             fl_dict = {}
-            print('CREATING SVD MAP FILE WITH NAME:', SVD_MAP_FILE)
+            print('CREATING SVD MAP FILE WITH NAME:', svd_map_file)
 
         fl_dict[gz_name] = svd['name']
-        gz_write(fl_dict, SVD_MAP_FILE, results=False)
+        gz_write(fl_dict, save_dir, svd_map_file, results=False)
 
         if on_close:
             try:
