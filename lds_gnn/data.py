@@ -424,18 +424,28 @@ def reorganize_data_for_es(loaded_data, seed=0, es_n_data_prop=0.5, split_train=
     features = preprocess_features(features)
     if split_train:
         msk1, msk2 = divide_mask(es_n_data_prop, np.sum(train_mask), seed=seed)
-        mask_train = np.array(train_mask)
-        mask_es = np.array(train_mask)
-        train_mask[mask_train] = msk2  # this changes
-        mask_es[mask_es] = msk1
 
-        mask_val = val_mask  # this does not chance
+        # It was like this before, I believe it was wrong!
+        # mask_train = np.array(train_mask)
+        # mask_es = np.array(train_mask)
+        # train_mask[mask_train] = msk2  # this changes
+        # mask_es[mask_es] = msk1
+        # mask_val = val_mask  # this does not chance
+
+        mask_es = np.array(val_mask)  # use all validation set for early stopping
+
+        mask_train = np.array(train_mask)
+        mask_val = np.array(train_mask)
+        train_mask[mask_train] = msk2  # training gcn parameters on part of training data (1/2)
+        mask_val[mask_val] = msk1  # training graph parameters on rest of training data (1/2)
+
     else:  # split the validation set
         msk1, msk2 = divide_mask(es_n_data_prop, np.sum(val_mask), seed=seed)
+
         mask_val = np.array(val_mask)
         mask_es = np.array(val_mask)
-        mask_val[mask_val] = msk2
-        mask_es[mask_es] = msk1
+        mask_val[mask_val] = msk2  # train graph parameters on part of validation set (1/2)
+        mask_es[mask_es] = msk1  # use rest of validation for early stopping
 
     return adj, adj_mods, features, ys, train_mask, mask_val, mask_es, test_mask
 
