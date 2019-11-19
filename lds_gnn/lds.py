@@ -350,11 +350,8 @@ def lds(data_conf: ConfigData, config: LDSConfig, out_dir=None):
     )
 
     pred_distro = tfp.distributions.OneHotCategorical(probs=out_softmax)
-    mnlp_test = tf.math.negative(
-        tf.identity(
-            -tf.reduce_mean(tf.boolean_mask(pred_distro.log_prob(ys), test_mask)),
-            "mnlp",
-        )
+    mnlp_test = tf.identity(
+        tf.math.negative(tf.reduce_mean(tf.boolean_mask(pred_distro.log_prob(ys), test_mask))), "mnlp"
     )
 
     tr_fd, val_fd, es_fd, test_fd = plc.fds(train_mask, val_mask, es_mask, test_mask)
