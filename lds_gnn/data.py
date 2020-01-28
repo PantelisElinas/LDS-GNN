@@ -382,6 +382,8 @@ def load_data_del_edges(
         split_sizes = [0.948, 0.805]
     elif dataset_name in ["citeseer", "citeseer_edgelist"]:
         split_sizes = [0.964, 0.844]
+    elif dataset_name in ["polblogs", "polblogs_edgelist"]:
+        split_sizes = [0.9, 0.75]
 
     X, y, A, mask_train, mask_val, mask_test, y_train, y_val, y_test, n, d, k = get_data(
         dataset_name=dataset_name,
@@ -401,8 +403,6 @@ def load_data_del_edges(
             perc_corruption=0,  # Not used
             adjacency_matrix=corrupted_graph_file,
         )
-    # adj, features, y_train, *other_splittables
-    # return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask
 
     data = (A, X, y_train, y_val, y_test, mask_train, mask_val, mask_test)
 
@@ -410,7 +410,7 @@ def load_data_del_edges(
         prob_del,
         seed,
         *data,
-        to_dense=False,  # to_dense,
+        to_dense=False,
         enforce_connected=enforce_connected
     )
     return res
