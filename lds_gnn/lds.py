@@ -478,7 +478,7 @@ def main(
         data_config = UCI(
             seed=seed, dataset_name=data, n_train=100, n_val=100, n_es=100, scale=False
         )
-    elif data in ["cora", "cora_edgelist", "citeseer", "citeseer_edgelist"]:
+    elif data in ["cora", "cora_edgelist", "citeseer", "citeseer_edgelist", "polblogs", "polblogs_edgelist"]:
         if len(corrupted_graph_file) > 0:
             data_config = EdgeDelConfigData(
                 prob_del=missing_percentage,
