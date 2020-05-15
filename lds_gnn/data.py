@@ -169,6 +169,7 @@ from gcn_latent_net.utils.base import corrupt_adjacency
 class ConfigData(Config):
     def __init__(self, **kwargs):
         self.seed = 0
+        self.seed_tf = None
         self.f1 = "load_data_del_edges"
         self.dataset_name = "cora"
         self.kwargs_f1 = {}
@@ -196,6 +197,7 @@ class EdgeDelConfigData(ConfigData):
         self.corrupted_graph_file = kwargs.get("corrupted_graph_file", None)
         self.edgelist = kwargs.get("edgelist", None)
         self.seed_np = kwargs.get("seed_np", None)
+        self.seed_tf = kwargs.get("seed_tf", None)
         self.random_state = np.random.RandomState(self.seed_np)
         self.random_split = kwargs.get("random_split", False)
         self.prob_del = 0.5

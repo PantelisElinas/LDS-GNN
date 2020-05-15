@@ -314,7 +314,7 @@ def lds(data_conf: ConfigData, config: LDSConfig, out_dir=None):
                         - the best `early stopping` accuracy
                         - the test accuracy on the iteration that achieved the best `early stopping` accuracy
     """
-    ss = setup_tf(config.seed)
+    ss = setup_tf(data_conf.seed_tf)
 
     adj, adj_mods, features, ys, train_mask, val_mask, es_mask, test_mask = (
         data_conf.load()
@@ -448,7 +448,7 @@ def lds(data_conf: ConfigData, config: LDSConfig, out_dir=None):
 
 
 def main(
-    data, method, seed, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir, splittrain
+    data, method, seed, seed_tf, seed_np, random_split, missing_percentage, corrupted_graph_file, edgelist, out_dir, splittrain
 ):
     if out_dir is not None:
         if not os.path.exists(out_dir):
@@ -506,6 +506,7 @@ def main(
             data_config = EdgeDelConfigData(
                 prob_del=missing_percentage,
                 seed=seed,
+                seed_tf=seed_tf,
                 enforce_connected=False,
                 dataset_name=data,
                 split_train=splittrain
@@ -605,6 +606,12 @@ if __name__ == "__main__":
         help="The random seed for stratified data splitting. Default: None",
     )
     parser.add_argument(
+        "-stf",
+        default=None,
+        type=int,
+        help="The random seed for Tensorflow. Default: None",
+    )
+    parser.add_argument(
         "-randomsplit",
         default=False,
         type=bool,
@@ -636,10 +643,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    _data, _method, _seed, _seed_np, _random_split, _missing_percentage = (
+    _data, _method, _seed, _seed_tf, _seed_np, _random_split, _missing_percentage = (
         args.d,
         args.m,
         args.s,
+        args.stf,
         args.snp,
         args.randomsplit,
         args.e / 100,
@@ -653,6 +661,7 @@ if __name__ == "__main__":
         _data,
         _method,
         _seed,
+        _seed_tf,
         _seed_np,
         _random_split,
         _missing_percentage,
