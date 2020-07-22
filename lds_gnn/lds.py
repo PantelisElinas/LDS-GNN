@@ -648,6 +648,8 @@ if __name__ == "__main__":
         type=str,
         help="The output directory for writing the results.",
     )
+    parser.add_argument("name")  # Unused
+
     args = parser.parse_args()
 
     _data, _method, _seed, _seed_tf, _seed_np, _random_split, _missing_percentage = (
