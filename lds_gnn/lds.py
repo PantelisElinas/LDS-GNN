@@ -587,35 +587,40 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="method")
     parser.add_argument(
-        "-d",
+        "-d", "--dataset",
         default="breast_cancer",
         type=str,
         help="The evaluation dataset: iris, wine, breast_cancer, digits, 20newstrain, 20news10, "
         + "cora, citeseer, fma. Default: breast_cancer",
     )
     parser.add_argument(
-        "-m",
+        "-m", "--method",
         default="knnlds",
         type=str,
         help="The method: lds or knnlds. Default: knnlds",
     )
-    parser.add_argument("-s", default=1, type=int, help="The random seed. Default: 1")
+    parser.add_argument("-s", "--seed-val",
+                        default=1,
+                        type=int,
+                        help="The random seed. Default: 1"
+                        )
     parser.add_argument(
-        "-snp",
+        "-snp", "--seed-np",
         default=None,
         type=int,
         help="The random seed for stratified data splitting. Default: None",
     )
     parser.add_argument(
-        "-stf",
+        "-stf", "--seed",
         default=None,
         type=int,
         help="The random seed for Tensorflow. Default: None",
     )
     parser.add_argument(
-        "-randomsplit",
-        default=False,
-        type=bool,
+        "-randomsplit", "--random-split",
+        #default=False,
+        #type=bool,
+        action="store_true",
         help="Random split of data. Default: False",
     )
     parser.add_argument(
@@ -637,7 +642,7 @@ if __name__ == "__main__":
         "-edgelist", default=None, type=str, help="The knn graph in .gpickle format."
     )
     parser.add_argument(
-        "-odir",
+        "-odir", "--results-dir",
         default=None,
         type=str,
         help="The output directory for writing the results.",
@@ -645,16 +650,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     _data, _method, _seed, _seed_tf, _seed_np, _random_split, _missing_percentage = (
-        args.d,
-        args.m,
-        args.s,
-        args.stf,
-        args.snp,
-        args.randomsplit,
+        args.dataset,
+        args.method,
+        args.seed_val,
+        args.seed,
+        args.seed_np,
+        args.random_split,
         args.e / 100,
     )
     _corrupted_graph_file = args.c
-    _out_dir = args.odir
+    _out_dir = args.results_dir
     _edgelist = args.edgelist
     _split_train = args.splittrain
 
