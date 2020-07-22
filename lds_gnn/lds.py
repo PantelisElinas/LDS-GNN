@@ -507,6 +507,7 @@ def main(
                 prob_del=missing_percentage,
                 seed=seed,
                 seed_tf=seed_tf,
+                seed_np = seed_np,
                 random_split=random_split,
                 enforce_connected=False,
                 dataset_name=data,
