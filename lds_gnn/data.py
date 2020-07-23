@@ -162,8 +162,8 @@ try:
 except ImportError as e:
     from utils import Config, upper_triangular_mask
 
-from gcn_latent_net.datasets import DATASET_LOADERS, get_data
-from gcn_latent_net.utils.base import corrupt_adjacency
+from variational_gcn.datasets import DATASET_LOADERS, get_data
+from variational_gcn.utils.base import corrupt_adjacency
 
 
 class ConfigData(Config):
